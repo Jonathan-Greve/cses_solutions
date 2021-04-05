@@ -2,7 +2,6 @@
 
 using namespace std;
 
-static int curr_paths = 0;
 static const int board_size = 7;
 
 int solve(string moves, bool curr_path[board_size * board_size - 1], int move_index, int x, int y);
@@ -18,7 +17,7 @@ bool can_go_up(int x, int y, bool curr_path[board_size * board_size - 1])
 
 bool can_go_down(int x, int y, bool curr_path[board_size * board_size - 1])
 {
-    if (y + 1 < (board_size - 1) && !curr_path[(y + 1) * board_size + x])
+    if (y + 1 < board_size && !curr_path[(y + 1) * board_size + x])
     {
         return true;
     }
@@ -27,7 +26,7 @@ bool can_go_down(int x, int y, bool curr_path[board_size * board_size - 1])
 
 bool can_go_right(int x, int y, bool curr_path[board_size * board_size - 1])
 {
-    if (x + 1 < (board_size - 1) && !curr_path[y * board_size + x + 1])
+    if (x + 1 < board_size && !curr_path[y * board_size + x + 1])
     {
         return true;
     }
@@ -36,7 +35,7 @@ bool can_go_right(int x, int y, bool curr_path[board_size * board_size - 1])
 
 bool can_go_left(int x, int y, bool curr_path[board_size * board_size - 1])
 {
-    if (x - 1 < (board_size - 1) && !curr_path[y * board_size + x - 1])
+    if (x - 1 >= 0 && !curr_path[y * board_size + x - 1])
     {
         return true;
     }
@@ -88,9 +87,8 @@ int solve(string moves, bool curr_path[board_size*board_size-1], int move_index,
 {
     int num_solutions = 0;
     static char UDLR[4] = {'U', 'D', 'L', 'R'};
-    if (x == 0 && y == (board_size-1) && move_index == (board_size*board_size - 2))
+    if (x == 0 && y == (board_size-1) && move_index == (board_size*board_size - 1))
     {
-        curr_paths++;
         num_solutions = 1;
     }
     else
