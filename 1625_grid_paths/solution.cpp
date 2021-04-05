@@ -1,71 +1,114 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-int solve(string &moves, int move_index, int x, int y);
 
-int string_length = 48;
-int grid_size = 7;
-bool curr_path[48];
+static int curr_paths = 0;
+static const int board_size = 7;
 
-static int path_count = 0;
+int solve(string moves, bool curr_path[board_size * board_size - 1], int move_index, int x, int y);
 
-int try_move(string &moves, int move_index, int x, int y, char move)
+bool can_go_up(int x, int y, bool curr_path[board_size * board_size - 1])
 {
-    switch (move)
+    if (y - 1 >= 0 && !curr_path[(y - 1) * board_size + x])
     {
-    case 'D':
-        if (y + 1 < grid_size && !curr_path[(y + 1) * grid_size + x])
-            return solve(moves, move_index, x, y + 1);
-        break;
-    case 'U':
-        if (y - 1 >= 0 && !curr_path[(y - 1) * grid_size + x])
-            return solve(moves, move_index, x, y - 1);
-        break;
-    case 'L':
-        if (x - 1 >= 0 && !curr_path[y * grid_size + x - 1])
-            return solve(moves, move_index, x - 1, y);
-        break;
-    case 'R':
-        if (x + 1 < grid_size && !curr_path[y * grid_size + x + 1])
-            return solve(moves, move_index, x + 1, y);
-        break;
-    default:
-        cout << "Something went wrong: " << move << "\n";
+        return true;
     }
-    return 0;
+    return false;
 }
 
-int solve(string &moves, int move_index, int x, int y)
+bool can_go_down(int x, int y, bool curr_path[board_size * board_size - 1])
 {
-    curr_path[y * grid_size + x] = true;
-
-    if (x == 6 && y == 6)
+    if (y + 1 < (board_size - 1) && !curr_path[(y + 1) * board_size + x])
     {
-        path_count += 1;
-        cout << path_count << "\n";
-        curr_path[y * grid_size + x] = false;
-        return 1;
+        return true;
     }
-    if (move_index >= string_length)
-    {
-        curr_path[y * grid_size + x] = false;
-        return 0;
-    }
+    return false;
+}
 
+bool can_go_right(int x, int y, bool curr_path[board_size * board_size - 1])
+{
+    if (x + 1 < (board_size - 1) && !curr_path[y * board_size + x + 1])
+    {
+        return true;
+    }
+    return false;
+}
+
+bool can_go_left(int x, int y, bool curr_path[board_size * board_size - 1])
+{
+    if (x - 1 < (board_size - 1) && !curr_path[y * board_size + x - 1])
+    {
+        return true;
+    }
+    return false;
+}
+
+int try_move(string moves, bool curr_path[board_size * board_size - 1], int move_index, int x, int y, char move)
+{
     int num_solutions = 0;
-    if (moves[move_index] == '?')
+    switch (move)
     {
-        num_solutions += try_move(moves, move_index + 1, x, y, 'D');
-        num_solutions += try_move(moves, move_index + 1, x, y, 'U');
-        num_solutions += try_move(moves, move_index + 1, x, y, 'L');
-        num_solutions += try_move(moves, move_index + 1, x, y, 'R');
+    case 'U':
+        if (can_go_up(x, y, curr_path) && !(!(can_go_left(x, y, curr_path) || can_go_right(x,y,curr_path)) && can_go_down(x,y,curr_path))){
+            curr_path[(y-1)*board_size + x] = true;
+            num_solutions = solve(moves, curr_path, move_index + 1, x, y-1);
+            curr_path[(y-1)*board_size + x] = false;
+            return num_solutions;
+        }
+        break;
+    case 'D':
+        if (can_go_down(x, y, curr_path) && !(!(can_go_left(x, y, curr_path) || can_go_right(x,y,curr_path)) && can_go_up(x,y,curr_path))){
+            curr_path[(y+1)*board_size + x] = true;
+            num_solutions = solve(moves, curr_path, move_index + 1, x, y+1);
+            curr_path[(y+1)*board_size + x] = false;
+            return num_solutions;
+        }
+        break;
+    case 'R':
+        if (can_go_right(x, y, curr_path) && !(!(can_go_up(x, y, curr_path) || can_go_down(x,y,curr_path)) && can_go_left(x,y,curr_path))){
+            curr_path[y*board_size + x + 1] = true;
+            num_solutions = solve(moves, curr_path, move_index + 1, x+1, y);
+            curr_path[y*board_size + x + 1] = false;
+            return num_solutions;
+        }
+        break;
+    case 'L':
+        if (can_go_left(x, y, curr_path) && !(!(can_go_up(x, y, curr_path) || can_go_down(x,y,curr_path)) && can_go_right(x,y,curr_path))){
+            curr_path[y*board_size + x - 1] = true;
+            num_solutions = solve(moves, curr_path, move_index + 1, x-1, y);
+            curr_path[y*board_size + x - 1] = false;
+            return num_solutions;
+        }
+        break;
+    }
+    return num_solutions;
+}
+
+int solve(string moves, bool curr_path[board_size*board_size-1], int move_index, int x, int y)
+{
+    int num_solutions = 0;
+    static char UDLR[4] = {'U', 'D', 'L', 'R'};
+    if (x == 0 && y == (board_size-1) && move_index == (board_size*board_size - 2))
+    {
+        curr_paths++;
+        num_solutions = 1;
     }
     else
     {
-        num_solutions += try_move(moves, move_index + 1, x, y, moves[move_index]);
+        if (moves[move_index] == '?')
+        {
+            for (auto &&move : UDLR)
+        {
+            num_solutions += try_move(moves, curr_path, move_index, x, y, move);
+        }
     }
-    curr_path[y * grid_size + x] = false;
-    return num_solutions;
+    else
+    {
+        num_solutions += try_move(moves, curr_path, move_index, x, y, moves[move_index]);
+    }
+}
+
+return num_solutions;
 }
 
 int main()
@@ -74,7 +117,10 @@ int main()
 
     getline(cin, moves);
 
-    int num_solutions = solve(moves, 0, 0, 0);
+    bool curr_path[board_size * board_size - 1];
+    curr_path[0] = true;
+
+    int num_solutions = solve(moves, curr_path, 0, 0, 0);
 
     cout << num_solutions << "\n";
 
